@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Faculty Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-purple-100 min-h-screen font-sans">
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <div class="flex justify-between items-center mb-10">
+      <div class="text-center">
+        <h1 class="text-3xl font-extrabold text-purple-800">Faculty Dashboard</h1>
+        <p class="text-gray-600 mt-2">Create, manage and bulk upload programming questions.</p>
+      </div>
+      <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full shadow">Logout</button>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6">
+
+      <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-purple-400">
+        <h2 class="text-xl font-semibold text-purple-700 mb-4">Add New Question</h2>
+        <form id="questionForm">
+          <input id="title" type="text" placeholder="Question Title" required class="w-full p-3 mb-3 border rounded-lg" />
+          <textarea id="description" placeholder="Problem Description" rows="4" required class="w-full p-3 mb-3 border rounded-lg"></textarea>
+          <input id="signature" type="text" placeholder="Function Signature (e.g. int sum(int a, int b))" class="w-full p-3 mb-3 border rounded-lg" />
+          <select id="language" required class="w-full p-3 mb-3 border rounded-lg">
+            <option selected disabled>Select Programming Language</option>
+            <option value="c">C</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+            <option value="python">Python</option>
+          </select>
+          <textarea id="precode" placeholder="Pre-code (Optional)" rows="3" class="w-full p-3 mb-3 border rounded-lg"></textarea>
+
+          <div class="mb-4">
+            <h3 class="font-semibold text-purple-700 mb-2">Test Cases</h3>
+            <div id="testcaseContainer">
+              <div class="flex gap-2 mb-2">
+                <input type="text" placeholder="Input" class="test-input flex-1 p-2 border rounded" />
+                <input type="text" placeholder="Expected Output" class="expected-output flex-1 p-2 border rounded" />
+              </div>
+            </div>
+            <button type="button" onclick="addTestCase()" class="text-sm text-blue-600 hover:underline">+ Add another test case</button>
+          </div>
+
+          <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-full shadow">Add Question</button>
+        </form>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-yellow-400">
+        <h2 class="text-xl font-semibold text-yellow-700 mb-2">Bulk Upload Questions (JSON)</h2>
+        <input type="file" id="bulkFile" accept=".json" class="mb-2">
+        <p class="text-sm text-gray-500 mb-2">Format: Array of objects with title, description, functionSignature, languages, testCases[]</p>
+        <button id="uploadBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded-full shadow">Upload File</button>
+        <p id="uploadStatus" class="mt-3 text-sm text-gray-600"></p>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-indigo-400 mt-6">
+        <h2 class="text-xl font-semibold text-indigo-700 mb-4">View All Questions</h2>
+        <ul id="questionList" class="space-y-2 text-gray-700 text-sm">
+          <li class="text-gray-500">Loading questions...</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    const config = {
+      API_BASE_URL: 'http://localhost:5050'
+    };
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/faculty-login.html';
+    }
+
+    const axiosInstance = axios.create({
+        baseURL: config.API_BASE_URL,
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        await axiosInstance.post('/api/auth/logout');
+        localStorage.removeItem('token');
+        window.location.href = '/faculty-login.html';
+      } catch (err) {
+        console.error('Logout failed', err);
+        alert('Logout failed. Please try again.');
+      }
+    });
+
+    function addTestCase() {
+      const container = document.getElementById("testcaseContainer");
+      const div = document.createElement("div");
+      div.className = "flex gap-2 mb-2";
+      div.innerHTML = `
+        <input type="text" placeholder="Input" class="test-input flex-1 p-2 border rounded" />
+        <input type="text" placeholder="Expected Output" class="expected-output flex-1 p-2 border rounded" />
+      `;
+      container.appendChild(div);
+    }
+
+    async function loadQuestions() {
+      try {
+        const res = await axiosInstance.get(`/faculty/questions`);
+        const ul = document.getElementById("questionList");
+        ul.innerHTML = res.data.length === 0
+          ? "<li class='text-gray-500'>No questions added yet.</li>"
+          : res.data.map((q, i) => `
+              <li class="bg-gray-100 p-3 rounded-lg flex justify-between items-center">
+                <span>Q${i + 1}: ${q.title}</span>
+                <div class="space-x-4">
+                  <a href="/faculty-report.html?questionId=${q._id}" class="text-blue-600 hover:underline text-sm font-medium">View Report</a>
+                  <button onclick="deleteQuestion('${q._id}')" class="text-red-600 hover:underline text-sm font-medium">Delete</button>
+                </div>
+              </li>
+            `).join('');
+      } catch (err) {
+        console.error("Error loading questions", err);
+        document.getElementById("questionList").innerHTML = "<li class='text-red-500'>Failed to load questions.</li>";
+      }
+    }
+
+    async function deleteQuestion(id) {
+      if (!confirm("Are you sure you want to delete this question?")) return;
+      try {
+        await axiosInstance.delete(`/faculty/questions/${id}`);
+        alert("Question deleted successfully!");
+        loadQuestions();
+      } catch (err) {
+        console.error("Error deleting question", err);
+        alert("Failed to delete question.");
+      }
+    }
+
+    document.getElementById("questionForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const title = document.getElementById("title").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const functionSignature = document.getElementById("signature").value.trim();
+      const precode = document.getElementById("precode").value.trim();
+      const language = document.getElementById("language").value;
+
+      const inputs = document.querySelectorAll(".test-input");
+      const outputs = document.querySelectorAll(".expected-output");
+      const testCases = [];
+      
+      for (let i = 0; i < inputs.length; i++) {
+        const input = inputs[i].value;
+        const output = outputs[i].value;
+        if (input.trim() !== "" || output.trim() !== "") {
+          testCases.push({ input: input, expected: output });
+        }
+      }
+
+      const payload = {
+        title,
+        description,
+        functionSignature,
+        precode,
+        languages: [language],
+        testCases
+      };
+      
+      try {
+        await axiosInstance.post(`/faculty/questions`, payload);
+        alert("Question added successfully!");
+        document.getElementById("questionForm").reset();
+        document.getElementById("language").selectedIndex = 0;
+        document.getElementById("testcaseContainer").innerHTML = `
+          <div class="flex gap-2 mb-2">
+            <input type="text" placeholder="Input" class="test-input flex-1 p-2 border rounded" />
+            <input type="text" placeholder="Expected Output" class="expected-output flex-1 p-2 border rounded" />
+          </div>
+        `;
+        loadQuestions();
+      } catch (err) {
+        const errorMsg = err.response?.data?.errors?.[0]?.msg || err.response?.data?.error || "Failed to save question.";
+        alert(`Error: ${errorMsg}`);
+        console.error("Error saving question", err);
+      }
+    });
+
+    document.getElementById("uploadBtn").addEventListener("click", async () => {
+      const fileInput = document.getElementById("bulkFile");
+      const status = document.getElementById("uploadStatus");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        status.textContent = "Please select a file.";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        await axiosInstance.post(`/faculty/bulk`, formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+        status.textContent = "Upload complete!";
+        fileInput.value = '';
+        loadQuestions();
+      } catch (err) {
+        const errorMsg = err.response?.data?.error || "Failed to upload questions.";
+        status.textContent = `Error: ${errorMsg}`;
+        console.error("Bulk upload error", err);
+      }
+    });
+
+    window.onload = loadQuestions;
+  </script>
+</body>
+</html>
