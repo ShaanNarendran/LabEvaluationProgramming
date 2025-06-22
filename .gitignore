@@ -1,0 +1,25 @@
+# Dependencies
+/node_modules
+/server/node_modules
+
+# Environment variables
+.env
+/server/.env
+
+# Temporary files created by the code runner
+/server/temp/
+/server/util/usercode/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lcov.info
+
+# macOS specific
+.DS_Store
+
+# VS Code specific
+.vscode/
