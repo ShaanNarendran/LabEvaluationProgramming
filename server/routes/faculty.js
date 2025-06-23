@@ -22,5 +22,6 @@ router.post("/bulk", protect, authorize('faculty'), upload.single("file"), facul
 router.delete("/questions/:id", protect, authorize('faculty'), facultyController.deleteQuestion);
 router.get('/reports/:questionId', protect, authorize('faculty'), facultyController.getQuestionReports);
 router.get("/questions/:id", protect, authorize('faculty'), facultyController.getQuestionById);
+router.post("/questions/assign", protect, authorize('faculty'), facultyController.assignQuestions);
 
 module.exports = router;

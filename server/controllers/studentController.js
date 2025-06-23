@@ -1,14 +1,15 @@
 const Question = require("../models/question");
 
-// Fetches all questions for the student dashboard.
+// Fetches assigned questions for the logged in student.
 exports.getAllQuestions = async (req, res, next) => {
-    try {
-      const questions = await Question.find();
-      res.json(questions);
-    } catch (err) {
-      next(err);
-    }
+  try {
+    const questions = await Question.find({ assignedTo: req.user._id });
+    res.json(questions);
+  } catch (err) {
+    next(err);
+  }
 };
+
 
 // Fetches a single question by its ID.
 exports.getQuestionById = async (req, res, next) => {
