@@ -17,7 +17,7 @@ const createAdmin = async () => {
       name: 'Admin',
       user_id: 'admin',
       roll_number: 'ADMIN001',
-      password: 'a_secure_password', // Change this to a password of your choice
+      password: 'a_secure_password',
       role: 'admin'
     });
 

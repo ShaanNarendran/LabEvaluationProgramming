@@ -6,32 +6,59 @@
   <title>Submission Report</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
-  <div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-800" id="questionTitle">Submission Report</h1>
-        <a href="/faculty-dashboard.html" class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-full shadow">&larr; Back to Dashboard</a>
+<body class="bg-gradient-to-br from-indigo-50 to-purple-100 min-h-screen font-sans">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex justify-between items-center mb-8">
+        <div class="text-left">
+            <h1 class="text-3xl font-extrabold text-purple-800" id="questionTitle">Submission Report</h1>
+            <p id="reportDescription" class="mt-2 text-gray-600">Submissions for this question will be listed below.</p>
+        </div>
+        <a href="/faculty-dashboard.html" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-full shadow transition-colors">&larr; Back to Dashboard</a>
     </div>
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-      <div class="p-6">
-        <p id="reportDescription" class="text-gray-600"></p>
+    
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead class="bg-purple-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">Student Name</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">Roll Number</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">Result</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">Submitted At</th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only">View Code</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="submissionList" class="bg-white divide-y divide-gray-200">
+            </tbody>
+        </table>
       </div>
-      <table class="min-w-full">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="px-6 py-3 border-b-2 border-gray-200 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider">Student Name</th>
-            <th class="px-6 py-3 border-b-2 border-gray-200 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider">Roll Number</th>
-            <th class="px-6 py-3 border-b-2 border-gray-200 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider">Result</th>
-            <th class="px-6 py-3 border-b-2 border-gray-200 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider">Submitted At</th>
-            <th class="px-6 py-3 border-b-2 border-gray-200"></th>
-          </tr>
-        </thead>
-        <tbody id="submissionList" class="bg-white">
-          <!-- Submissions will be injected here by JavaScript -->
-        </tbody>
-      </table>
     </div>
   </div>
+
+  <div id="codeModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+      <div class="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <div class="bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <h3 class="text-lg leading-6 font-medium text-gray-100" id="modal-title">
+              Submitted Code
+            </h3>
+            <div class="mt-4">
+              <pre class="bg-gray-900 text-white p-4 rounded-md overflow-x-auto"><code id="modalCodeContent"></code></pre>
+            </div>
+        </div>
+        <div class="bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button type="button" onclick="closeModal()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
@@ -42,97 +69,64 @@
 
     const axiosInstance = axios.create({
       baseURL: 'http://localhost:5050',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Authorization': `Bearer ${token}` }
     });
 
-    // Get the question ID from the URL
     const urlParams = new URLSearchParams(window.location.search);
     const questionId = urlParams.get('questionId');
+    
+    // Modal elements
+    const codeModal = document.getElementById('codeModal');
+    const modalCodeContent = document.getElementById('modalCodeContent');
 
     async function loadReport() {
       if (!questionId) {
-        document.getElementById('submissionList').innerHTML = '<tr><td colspan="5" class="text-center py-4">No question ID provided.</td></tr>';
+        document.getElementById('submissionList').innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No question ID provided.</td></tr>';
         return;
       }
-
       try {
-        // Fetch both the question details and the submissions
-        const [questionRes, submissionsRes] = await Promise.all([
-            axiosInstance.get(`/faculty/questions`), // Assuming this returns all questions
-            axiosInstance.get(`/faculty/reports/${questionId}`)
-        ]);
+        const res = await axiosInstance.get(`/faculty/reports/${questionId}`);
+        const { question, submissions } = res.data;
 
-        const questions = questionRes.data;
-        const question = questions.find(q => q._id === questionId);
         if (question) {
             document.getElementById('questionTitle').textContent = `Report for: ${question.title}`;
             document.getElementById('reportDescription').textContent = question.description;
         }
 
-
-        const submissions = submissionsRes.data;
         const submissionList = document.getElementById('submissionList');
-
         if (submissions.length === 0) {
-          submissionList.innerHTML = '<tr><td colspan="5" class="text-center py-4">No submissions yet for this question.</td></tr>';
+          submissionList.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No submissions yet for this question.</td></tr>';
           return;
         }
 
         submissionList.innerHTML = submissions.map(sub => `
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">${sub.student?.name || 'N/A'}</td>
-            <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">${sub.student?.roll_number || 'N/A'}</td>
-            <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-              <span class="${sub.passed ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'} px-2 py-1 rounded-full text-xs font-semibold">
+          <tr class="hover:bg-purple-50 transition-colors">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${sub.student?.name || 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${sub.student?.roll_number || 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${sub.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
                 ${sub.passed ? 'Passed' : 'Failed'}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">${new Date(sub.submittedAt).toLocaleString()}</td>
-            <td class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200">
-              <button onclick='viewCode(${JSON.stringify(sub.code)})' class="text-indigo-600 hover:text-indigo-900 font-medium">View Code</button>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(sub.submittedAt).toLocaleString()}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button onclick='viewCode(${JSON.stringify(sub.code)})' class="text-purple-600 hover:text-purple-900">View Code</button>
             </td>
           </tr>
         `).join('');
       } catch (err) {
         console.error('Error loading report:', err);
-        document.getElementById('submissionList').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-red-500">Failed to load report. Please try again.</td></tr>';
+        document.getElementById('submissionList').innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Failed to load report. Please try again.</td></tr>';
       }
     }
 
     function viewCode(code) {
-      // Create a modal to show the code
-      const modal = document.createElement('div');
-      modal.style.position = 'fixed';
-      modal.style.left = '0';
-      modal.style.top = '0';
-      modal.style.width = '100%';
-      modal.style.height = '100%';
-      modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-      modal.style.display = 'flex';
-      modal.style.justifyContent = 'center';
-      modal.style.alignItems = 'center';
-      modal.onclick = () => document.body.removeChild(modal);
+      modalCodeContent.textContent = code;
+      codeModal.classList.remove('hidden');
+    }
 
-      const content = document.createElement('div');
-      content.style.backgroundColor = '#2d2d2d';
-      content.style.color = '#d4d4d4';
-      content.style.padding = '20px';
-      content.style.borderRadius = '8px';
-      content.style.maxWidth = '80%';
-      content.style.maxHeight = '80%';
-      content.style.overflow = 'auto';
-      content.onclick = (e) => e.stopPropagation();
-
-      const pre = document.createElement('pre');
-      const codeEl = document.createElement('code');
-      codeEl.textContent = code;
-      pre.appendChild(codeEl);
-      content.appendChild(pre);
-      modal.appendChild(content);
-      
-      document.body.appendChild(modal);
+    function closeModal() {
+      codeModal.classList.add('hidden');
     }
 
     window.onload = loadReport;

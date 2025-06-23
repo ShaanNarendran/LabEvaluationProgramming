@@ -11,17 +11,12 @@ app.use(express.json());
 mongoose.set('strictQuery', true); // Suppresses the deprecation warning
 
 // --- API Routes ---
-// All your API routes should be defined first.
-app.use('/api/auth', require('./routes/auth')); // Assuming you have this
+app.use('/api/auth', require('./routes/auth')); 
 app.use('/execute', require('./routes/execute'));
 app.use('/faculty', require('./routes/faculty'));
 app.use('/student', require('./routes/student'));
-app.use('/api/placeholder', require('./routes/placeholder')); // Assuming you have this
+app.use('/api/placeholder', require('./routes/placeholder')); 
 
-// --- Static File Serving ---
-// This line tells Express to serve any file from the 'client' directory if a URL matches.
-// For example, a request to /faculty-dashboard.html will serve the file client/faculty-dashboard.html
-// This MUST be placed AFTER your API routes.
 app.use(express.static(path.join(__dirname, '../client')));
 
 // --- Catch-all Route ---
