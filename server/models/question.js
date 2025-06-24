@@ -13,7 +13,12 @@ const questionSchema = new mongoose.Schema({
   assignedTo: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }]
+  }],
+  marks: {
+    type: Number,
+    required: true,
+    default: 10 
+  }
 });
 
 module.exports = mongoose.model("Question", questionSchema);

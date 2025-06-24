@@ -8,4 +8,5 @@ router.get("/questions", protect, studentController.getAllQuestions);
 
 router.get("/question/:id", studentController.getQuestionById); 
 
+router.get("/submissions", protect, studentController.getSubmissions);
 module.exports = router;

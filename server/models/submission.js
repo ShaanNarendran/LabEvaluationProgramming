@@ -22,6 +22,11 @@ const submissionSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
+  
+  marksAwarded: {
+    type: Number,
+    default: 0
+  },
   submittedAt: {
     type: Date,
     default: Date.now,

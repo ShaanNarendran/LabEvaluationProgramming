@@ -1,15 +1,27 @@
 const Question = require("../models/question");
+const Submission = require('../models/submission');
 
-// Fetches assigned questions for the logged in student.
+// Fetches only the questions assigned to the logged-in student.
 exports.getAllQuestions = async (req, res, next) => {
-  try {
-    const questions = await Question.find({ assignedTo: req.user._id });
-    res.json(questions);
-  } catch (err) {
-    next(err);
-  }
-};
+    try {
+        // --- TEMPORARY DEBUGGING ---
+        console.log(`[Debug] Fetching questions for user ID: ${req.user._id}`);
+        // ---------------------------
 
+        const questions = await Question.find({ assignedTo: req.user._id });
+
+        // --- TEMPORARY DEBUGGING ---
+        console.log(`[Debug] Found ${questions.length} questions for this user.`);
+        // ---------------------------
+        
+        res.json(questions);
+    } catch (err) {
+        // --- TEMPORARY DEBUGGING ---
+        console.error("[Debug] Error in getAllQuestions:", err);
+        // ---------------------------
+        next(err);
+    }
+};
 
 // Fetches a single question by its ID.
 exports.getQuestionById = async (req, res, next) => {
@@ -22,4 +34,14 @@ exports.getQuestionById = async (req, res, next) => {
       } catch (err) {
         next(err);
       }
+};
+
+// Fetches all submissions made by the currently logged-in student.
+exports.getSubmissions = async (req, res, next) => {
+    try {
+        const submissions = await Submission.find({ student: req.user._id }).select('question');
+        res.json(submissions);
+    } catch (err) {
+        next(err);
+    }
 };

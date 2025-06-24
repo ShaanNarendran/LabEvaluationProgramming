@@ -24,14 +24,14 @@
               <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">Student Name</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">Roll Number</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">Result</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">Marks</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">Submitted At</th>
-              <th scope="col" class="relative px-6 py-3">
-                <span class="sr-only">View Code</span>
-              </th>
+              <th scope="col" class="relative px-6 py-3"><span class="sr-only">View Code</span></th>
             </tr>
           </thead>
           <tbody id="submissionList" class="bg-white divide-y divide-gray-200">
-            </tbody>
+            <!-- Data will be injected here -->
+          </tbody>
         </table>
       </div>
     </div>
@@ -43,45 +43,35 @@
       <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
       <div class="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
         <div class="bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <h3 class="text-lg leading-6 font-medium text-gray-100" id="modal-title">
-              Submitted Code
-            </h3>
-            <div class="mt-4">
-              <pre class="bg-gray-900 text-white p-4 rounded-md overflow-x-auto"><code id="modalCodeContent"></code></pre>
-            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-100">Submitted Code</h3>
+            <div class="mt-4"><pre class="bg-gray-900 text-white p-4 rounded-md overflow-x-auto"><code id="modalCodeContent"></code></pre></div>
         </div>
         <div class="bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-          <button type="button" onclick="closeModal()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-            Close
-          </button>
+          <button type="button" onclick="closeModal()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">Close</button>
         </div>
       </div>
     </div>
   </div>
 
-
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
     const token = localStorage.getItem('token');
-    if (!token) {
-      window.location.href = '/faculty-login.html';
-    }
+    if (!token) window.location.href = '/faculty-login.html';
 
     const axiosInstance = axios.create({
-      baseURL: 'http://localhost:5050',
+      baseURL: 'http://localhost:5050/api', // Use /api prefix
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
     const urlParams = new URLSearchParams(window.location.search);
     const questionId = urlParams.get('questionId');
     
-    // Modal elements
     const codeModal = document.getElementById('codeModal');
     const modalCodeContent = document.getElementById('modalCodeContent');
 
     async function loadReport() {
       if (!questionId) {
-        document.getElementById('submissionList').innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No question ID provided.</td></tr>';
+        document.getElementById('submissionList').innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No question ID provided.</td></tr>';
         return;
       }
       try {
@@ -94,8 +84,8 @@
         }
 
         const submissionList = document.getElementById('submissionList');
-        if (submissions.length === 0) {
-          submissionList.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No submissions yet for this question.</td></tr>';
+        if (!submissions || submissions.length === 0) {
+          submissionList.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No submissions yet for this question.</td></tr>';
           return;
         }
 
@@ -108,6 +98,7 @@
                 ${sub.passed ? 'Passed' : 'Failed'}
               </span>
             </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${sub.marksAwarded || 0}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(sub.submittedAt).toLocaleString()}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <button onclick='viewCode(${JSON.stringify(sub.code)})' class="text-purple-600 hover:text-purple-900">View Code</button>
@@ -116,7 +107,7 @@
         `).join('');
       } catch (err) {
         console.error('Error loading report:', err);
-        document.getElementById('submissionList').innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Failed to load report. Please try again.</td></tr>';
+        document.getElementById('submissionList').innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Failed to load report. Error: ${err.response?.data?.message || err.message}</td></tr>`;
       }
     }
 

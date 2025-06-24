@@ -7,6 +7,7 @@ exports.updatePerformance = (req, res) => {
     console.log({
       studentId,
       questionId,
+      marksObtained: marksObtained,
       passed,
       submittedAt
     });
