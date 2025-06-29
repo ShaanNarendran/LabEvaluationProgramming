@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .editor-panel {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    #editorContainer {
+        flex-grow: 1;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-purple-100 font-sans">
+  <div class="w-full h-screen flex flex-col p-4 gap-4">
+    <!-- Header -->
+    <header class="flex-shrink-0 flex justify-between items-center p-3 bg-white rounded-2xl shadow-lg border border-gray-200">
+        <div class="text-left">
+            <h1 class="text-2xl font-extrabold text-purple-800">Programming Lab</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+                <label for="questionSelect" class="text-sm font-semibold text-gray-700">Select Question:</label>
+                <select id="questionSelect" class="px-3 py-1.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                  <option>Loading...</option>
+                </select>
+            </div>
+            <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-colors">Logout</button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex gap-4 overflow-hidden">
+      <div class="w-1/3 flex flex-col bg-white rounded-2xl shadow-lg border border-gray-200 overflow-y-auto">
+        <div class="p-6">
+            <h2 id="questionTitle" class="text-2xl font-bold text-gray-800 mb-2">Problem Title</h2>
+            <p id="questionDescription" class="text-gray-600 leading-relaxed">Description will appear here.</p>
+        </div>
+        <div id="testCases" class="p-6 border-t border-gray-200 space-y-4"></div>
+      </div>
+      <div class="w-2/3 flex flex-col gap-4">
+        <div class="flex-grow flex flex-col bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-700">
+            <div class="flex-shrink-0 flex justify-between items-center p-3 bg-gray-700 border-b border-gray-600">
+                <div class="flex items-center gap-3">
+                    <label for="languageSelect" class="block font-semibold text-gray-200">Language:</label>
+                    <select id="languageSelect" class="px-3 py-1 bg-gray-800 border border-gray-500 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500" disabled></select>
+                </div>
+                <div class="space-x-3">
+                  <button id="runBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-colors">Run Code</button>
+                  <button id="submitBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-colors">Submit Final</button>
+                </div>
+            </div>
+            <div id="editorContainer" class="flex-grow h-full w-full"></div>
+        </div>
+        <div class="h-1/3 flex-shrink-0 flex flex-col bg-gray-800 text-white rounded-2xl shadow-lg border border-gray-700">
+          <h3 class="flex-shrink-0 text-lg font-semibold p-3 bg-gray-700 border-b border-gray-600 rounded-t-2xl">Console</h3>
+          <div id="outputBox" class="p-4 font-mono text-sm whitespace-pre-wrap flex-1 overflow-y-auto">
+            <span class="text-gray-400">&gt; Output will appear here.</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+
+  <script>
+    const config = {
+      API_BASE_URL: 'http://localhost:5050/api'
+    };
+
+    let questions = [];
+    let currentIndex = 0;
+    let editor;
+    let submittedQuestionIds = new Set();
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/student-login.html';
+    }
+
+    const axiosInstance = axios.create({
+      baseURL: config.API_BASE_URL,
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const starterCode = {
+      c: `#include <stdio.h>\n\nint main() {\n  // Your code here\n  return 0;\n}`,
+      cpp: `#include <iostream>\n\nint main() {\n  // Your code here\n  return 0;\n}`,
+      java: `public class Main {\n  public static void main(String[] args) {\n    // Your code here\n  }\n}`,
+      python: `# Your code here`
+    };
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const [questionsRes, submissionsRes] = await Promise.all([
+          axiosInstance.get(`/student/questions`),
+          axiosInstance.get(`/student/submissions`)
+        ]);
+
+        const submissions = Array.isArray(submissionsRes.data) ? submissionsRes.data : [];
+        submittedQuestionIds = new Set(submissions.map(sub => sub.question));
+        
+        // --- THIS IS THE FIX ---
+        // Ensure that the 'questions' variable is always an array before proceeding.
+        questions = Array.isArray(questionsRes.data) ? questionsRes.data : [];
+        
+        const dropdown = document.getElementById("questionSelect");
+        dropdown.innerHTML = "";
+        
+        if (questions.length > 0) {
+            questions.forEach((q, i) => {
+              const opt = document.createElement("option");
+              opt.value = i;
+              opt.textContent = q.title;
+              dropdown.appendChild(opt);
+            });
+            dropdown.addEventListener("change", () => showQuestion(parseInt(dropdown.value)));
+            showQuestion(0);
+        } else {
+            dropdown.innerHTML = '<option>No Questions Assigned</option>';
+            document.getElementById("questionTitle").textContent = "No Questions Assigned";
+            document.getElementById("questionDescription").textContent = "Please check back later.";
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('submitBtn').disabled = true;
+        }
+      } catch (err) {
+        console.error("Failed to load initial data", err);
+        document.getElementById("questionSelect").innerHTML = '<option>Error loading data</option>';
+        document.getElementById("questionTitle").textContent = "Error";
+        document.getElementById("questionDescription").textContent = "Could not load data. Please check the console and ensure the server is running.";
+      }
+    });
+
+    function showQuestion(index) {
+      const q = questions[index];
+      currentIndex = index;
+      document.getElementById("questionTitle").textContent = q.title;
+      document.getElementById("questionDescription").textContent = q.description;
+      
+      const languageSelect = document.getElementById("languageSelect");
+      languageSelect.innerHTML = '';
+      q.languages.forEach(lang => {
+        const option = document.createElement('option');
+        option.value = lang;
+        option.textContent = lang.charAt(0).toUpperCase() + lang.slice(1);
+        languageSelect.appendChild(option);
+      });
+      languageSelect.disabled = false;
+
+      const lang = q.languages[0];
+      if (editor && monaco) {
+        monaco.editor.setModelLanguage(editor.getModel(), lang);
+        editor.setValue(q.precode || starterCode[lang] || "// Start coding here...");
+      }
+
+      const tcDiv = document.getElementById("testCases");
+      tcDiv.innerHTML = q.testCases?.filter(tc => !tc.hidden).map((test, i) => `
+        <div class="pt-4 border-t border-gray-200">
+          <p class="font-semibold text-gray-800 mb-1">Sample Input ${i + 1}:</p>
+          <pre class="bg-gray-100 p-3 rounded text-sm text-gray-800 font-mono">${test.input || '(empty)'}</pre>
+          <p class="font-semibold text-gray-800 mt-2 mb-1">Expected Output ${i + 1}:</p>
+          <pre class="bg-gray-100 p-3 rounded text-sm text-gray-800 font-mono">${test.expected || '(empty)'}</pre>
+        </div>`).join('') || '<p class="text-gray-500">No sample test cases provided.</p>';
+
+      const submitBtn = document.getElementById('submitBtn');
+      if (submittedQuestionIds.has(q._id)) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitted';
+        submitBtn.classList.add('bg-gray-400', 'hover:bg-gray-400', 'cursor-not-allowed');
+        submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+      } else {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Final';
+        submitBtn.classList.remove('bg-gray-400', 'hover:bg-gray-400', 'cursor-not-allowed');
+        submitBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+      }
+    }
+
+    async function runCode() {
+      const code = editor.getValue();
+      const lang = document.getElementById("languageSelect").value;
+      const currentQuestion = questions[currentIndex];
+      const outputBox = document.getElementById("outputBox");
+      const runBtn = document.getElementById("runBtn");
+
+      outputBox.innerHTML = '<span class="text-gray-400">> Running your code...</span>';
+      runBtn.disabled = true;
+
+      try {
+        const res = await axiosInstance.post(`/execute/run`, { code, language: lang, questionId: currentQuestion._id });
+        const { stdout, stderr } = res.data;
+        if (stderr) {
+            outputBox.innerHTML = `<span class="text-red-400">Error:</span>\n${stderr}`;
+        } else {
+            outputBox.innerHTML = `<span class="text-green-400">Output:</span>\n${stdout.join('\n')}`;
+        }
+      } catch (err) {
+        outputBox.innerHTML = `<span class="text-red-400">Error:</span> ${err.response?.data?.error || "An unknown error occurred."}`;
+      } finally {
+        runBtn.disabled = false;
+      }
+    }
+
+    async function submitCode() {
+      if (!confirm("Are you sure you want to submit? This cannot be undone.")) return;
+
+      const code = editor.getValue();
+      const lang = document.getElementById("languageSelect").value;
+      const currentQuestion = questions[currentIndex];
+      const outputBox = document.getElementById("outputBox");
+      const submitBtn = document.getElementById("submitBtn");
+
+      outputBox.innerHTML = '<span class="text-gray-400">> Submitting final code...</span>';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await axiosInstance.post(`/execute/runCode`, { code, language: lang, questionId: currentQuestion._id });
+        const { submission } = res.data;
+        if (submission.passed) {
+          outputBox.innerHTML = '<span class="text-green-400">Submission successful! All test cases passed.</span>';
+        } else {
+          outputBox.innerHTML = `<span class="text-red-400">Submission evaluated. Some tests failed.</span>`;
+        }
+        submittedQuestionIds.add(currentQuestion._id);
+        showQuestion(currentIndex);
+      } catch (err) {
+        outputBox.innerHTML = `<span class="text-red-400">Error:</span> ${err.response?.data?.error || "An unknown error occurred."}`;
+        submitBtn.disabled = false; 
+      }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+            await axiosInstance.post('/auth/logout');
+        } catch (error) {
+            console.error('Logout API call failed, proceeding with local logout.');
+        } finally {
+            localStorage.removeItem('token');
+            window.location.href = '/student-login.html';
+        }
+    });
+
+    document.getElementById("runBtn").addEventListener("click", runCode);
+    document.getElementById("submitBtn").addEventListener("click", submitCode);
+
+    require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs" } });
+    require(["vs/editor/editor.main"], () => {
+      editor = monaco.editor.create(document.getElementById("editorContainer"), {
+        value: "// Select a question to start coding...",
+        language: "cpp",
+        theme: "vs-dark",
+        fontSize: 14,
+        automaticLayout: true
+      });
+    });
+  </script>
+</body>
+</html>
