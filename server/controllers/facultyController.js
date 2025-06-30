@@ -1,5 +1,11 @@
 const { validationResult } = require('express-validator');
+<<<<<<< HEAD
 const { Question, Submission, User } = require("../models")
+=======
+const Question = require("../models/question");
+const Submission = require("../models/submission");
+const User = require("../models/user");
+>>>>>>> 9cd1863b6d4920735ee8ef1f2662a51b642160a5
 const xlsx = require('xlsx');
 
 // Helper function to shuffle an array
