@@ -18,8 +18,6 @@ router.post(
   validateRequest,
   placeholderController.updatePerformance
 );
-const placeholderController = require('../controllers/placeholderController');
-
 router.post('/update-performance', placeholderController.updatePerformance);
 
 module.exports = router;

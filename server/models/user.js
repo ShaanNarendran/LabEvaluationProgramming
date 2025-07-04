@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     user_id: { type: String, required: true, unique: true },
-<<<<<<< HEAD
     roll_number: {
         type: String,
         required: function () {
@@ -12,9 +11,6 @@ const userSchema = new mongoose.Schema({
         },
         unique: true,
     },
-=======
-    roll_number: { type: String, required: true, unique: true },
->>>>>>> 9cd1863b6d4920735ee8ef1f2662a51b642160a5
     password: { type: String, required: true },
     role: {
         type: String,

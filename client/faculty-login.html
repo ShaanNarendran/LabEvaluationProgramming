@@ -39,7 +39,7 @@
       try {
         const res = await axios.post('http://localhost:5050/api/auth/login', { user_id, password });
         localStorage.setItem('token', res.data.token);
-        window.location.href = '/faculty-dashboard.html';
+        window.location.href = 'http://localhost:5050/faculty-dashboard.html';
       } catch (err) {
         alert(err.response.data.message);
       }

@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 const validateRequest = require('../middleware/validateRequest');
-=======
->>>>>>> 9cd1863b6d4920735ee8ef1f2662a51b642160a5
 const express = require('express');
 const { body } = require('express-validator');
 const executionController = require('../controllers/executionController');
@@ -16,7 +13,6 @@ const executionValidationRules = [
 ];
 
 // Route for final submission (records the result)
-<<<<<<< HEAD
 router.post('/runCode',
   protect,
   executionValidationRules,
@@ -31,12 +27,10 @@ router.post('/run',
   validateRequest,
   executionController.runTestCases
 );
-=======
 router.post('/runCode', protect, executionValidationRules, executionController.runCode);
 
 // NEW: Route for test runs (does NOT record the result)
 router.post('/run', protect, executionValidationRules, executionController.runTestCases);
 
->>>>>>> 9cd1863b6d4920735ee8ef1f2662a51b642160a5
 
 module.exports = router;

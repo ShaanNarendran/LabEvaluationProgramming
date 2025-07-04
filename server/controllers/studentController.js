@@ -1,9 +1,4 @@
-<<<<<<< HEAD
 const { Question, Submission } = require('../models');
-=======
-const Question = require("../models/question");
-const Submission = require('../models/submission');
->>>>>>> 9cd1863b6d4920735ee8ef1f2662a51b642160a5
 
 // Fetches only the questions assigned to the logged-in student.
 exports.getAllQuestions = async (req, res, next) => {
@@ -48,8 +43,4 @@ exports.getSubmissions = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> 9cd1863b6d4920735ee8ef1f2662a51b642160a5

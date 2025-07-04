@@ -3,11 +3,7 @@ const jwt = require('jsonwebtoken');
 const xlsx = require('xlsx');
 const pdfParse = require('pdf-parse');
 const bcrypt = require('bcryptjs');
-<<<<<<< HEAD
-const { User } = require('../models');
-=======
 const User = require('../models/user');
->>>>>>> 9cd1863b6d4920735ee8ef1f2662a51b642160a5
 const logAction = require('../util/logAction');
 const { protect, authorize } = require('../middleware/auth');
 const multer = require('multer');
