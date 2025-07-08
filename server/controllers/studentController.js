@@ -1,5 +1,4 @@
-const Question = require("../models/question");
-const Submission = require('../models/submission');
+const { Question, Submission } = require('../models');
 
 // Fetches only the questions assigned to the logged-in student.
 exports.getAllQuestions = async (req, res, next) => {

@@ -1,7 +1,5 @@
 const { validationResult } = require('express-validator');
-const Question = require("../models/question");
-const Submission = require("../models/submission");
-const User = require("../models/user");
+const { Question, Submission, User } = require("../models")
 const xlsx = require('xlsx');
 
 // Helper function to shuffle an array

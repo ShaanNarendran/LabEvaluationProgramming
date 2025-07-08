@@ -1,6 +1,5 @@
 const { executeCode } = require('../util/dockerRunner');
-const Question = require('../models/question');
-const Submission = require('../models/submission');
+const { Question, Submission } = require('../models');
 const axios = require('axios');
 
 const EVALUATION_API_URL = 'http://localhost:5050/api/placeholder/update-performance';

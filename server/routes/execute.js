@@ -1,3 +1,4 @@
+const validateRequest = require('../middleware/validateRequest');
 const express = require('express');
 const { body } = require('express-validator');
 const executionController = require('../controllers/executionController');
@@ -12,6 +13,20 @@ const executionValidationRules = [
 ];
 
 // Route for final submission (records the result)
+router.post('/runCode',
+  protect,
+  executionValidationRules,
+  validateRequest,  
+  executionController.runCode
+);
+
+// NEW: Route for test runs (does NOT record the result)
+router.post('/run',
+  protect,
+  executionValidationRules,
+  validateRequest,
+  executionController.runTestCases
+);
 router.post('/runCode', protect, executionValidationRules, executionController.runCode);
 
 // NEW: Route for test runs (does NOT record the result)

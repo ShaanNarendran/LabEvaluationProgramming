@@ -1,3 +1,4 @@
+const validateRequest = require('../middleware/validateRequest');
 const express = require("express");
 const router = express.Router();
 const { body, param } = require('express-validator');
@@ -17,6 +18,7 @@ const questionValidationRules = [
 
 // All faculty routes, now pointing to a complete controller
 router.get("/questions", protect, authorize('faculty'), facultyController.getAllQuestions);
+router.post("/questions", protect, authorize('faculty'), questionValidationRules,validateRequest, facultyController.createQuestion);
 router.post("/questions", protect, authorize('faculty'), questionValidationRules, facultyController.createQuestion);
 router.post("/bulk", protect, authorize('faculty'), upload.single("file"), facultyController.bulkUploadQuestions);
 router.delete("/questions/:id", protect, authorize('faculty'), facultyController.deleteQuestion);

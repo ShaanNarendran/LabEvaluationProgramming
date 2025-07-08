@@ -4,7 +4,13 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     user_id: { type: String, required: true, unique: true },
-    roll_number: { type: String, required: true, unique: true },
+    roll_number: {
+        type: String,
+        required: function () {
+            return this.role === 'student';
+        },
+        unique: true,
+    },
     password: { type: String, required: true },
     role: {
         type: String,
