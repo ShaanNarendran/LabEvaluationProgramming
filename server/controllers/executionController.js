@@ -77,20 +77,19 @@ exports.runCode = async (req, res, next) => {
 };
 
 /**
- * Handles a test run of the code. This function is unchanged.
+ * Handles a test run of the code. 
  */
 exports.runTestCases = async (req, res, next) => {
-    const { language, code, questionId } = req.body;
+  const { language, code } = req.body; 
 
-    try {
-        const question = await Question.findById(questionId);
-        if (!question) {
-            return res.status(404).json({ error: 'Question not found' });
-        }
-        const visibleTestCases = question.testCases.filter(tc => !tc.hidden);
-        const { stdout, stderr } = await executeCode(language, code, visibleTestCases);
-        res.json({ stdout, stderr });
-    } catch (error) {
-        next(error);
-    }
+  try {
+      const customTestCases = [{ input: '' }];
+
+      const { stdout, stderr } = await executeCode(language, code, customTestCases);
+      
+      res.json({ stdout, stderr });
+
+  } catch (error) {
+      next(error);
+  }
 };
