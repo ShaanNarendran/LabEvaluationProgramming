@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Faculty Login</title>
+  <title>Faculty & Admin Login</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen">
@@ -38,8 +38,17 @@
 
       try {
         const res = await axios.post('http://localhost:5050/api/auth/login', { user_id, password });
-        localStorage.setItem('token', res.data.token);
-        window.location.href = 'http://localhost:5050/faculty-dashboard.html';
+        
+        // --- NEW: Dynamic Redirect based on Role ---
+        if (res.data.role === 'admin') {
+          window.location.href = '/admin-dashboard.html';
+        } else if (res.data.role === 'faculty') {
+          window.location.href = '/faculty-dashboard.html';
+        } else {
+          // Fallback for any other role trying to use this form
+          alert('You do not have permission to access this area.');
+        }
+
       } catch (err) {
         alert(err.response.data.message);
       }

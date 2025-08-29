@@ -44,7 +44,6 @@ router.post('/register/individual', protect, authorize('admin'), async (req, res
             role
         };
 
-        // If student, add batch and semester
         if (role === 'student') {
             if (batch) {
                 if (!allowedBatches.includes(batch)) {
@@ -53,7 +52,6 @@ router.post('/register/individual', protect, authorize('admin'), async (req, res
                 userData.batch = batch;
             }
 
-            // Add semester if provided
             if (semester) {
                 userData.semester = semester;
             }
@@ -249,14 +247,6 @@ router.post('/login', async (req, res) => {
         });
         return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    // --- REMOVED CONCURRENT LOGIN BLOCK ---
-    // The following block has been removed to allow a new login to override an old session.
-    /*
-    if (user.role === 'student' && user.session_token) {
-        return res.status(401).json({ message: 'Student is already logged in elsewhere. Please logout first.' });
-    }
-    */
    
     const ip = req.headers['x-forwarded-for']?.split(',').shift() || req.socket?.remoteAddress || '';
     const system_id = req.body.system_id || req.headers['user-agent'] || 'unknown';
@@ -279,13 +269,18 @@ router.post('/login', async (req, res) => {
         system_id
     });
 
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
     res.status(200).json({
         _id: user._id,
         name: user.name,
         user_id: user.user_id,
         roll_number: user.roll_number,
         role: user.role,
-        token
     });
 });
 
@@ -303,7 +298,7 @@ router.get('/get_users', protect, authorize('admin'), async (req, res) => {
 router.put('/update/users/:id', protect, authorize('admin'), async (req, res) => {
     try {
         const updateFields = { ...req.body };
-        const allowedFields = ['name', 'user_id', 'roll_number', 'role', 'batch', 'semester'];
+        const allowedFields = ['name', 'user_id', 'roll_number', 'role', 'batch', 'semester', 'handledBatches'];
         Object.keys(updateFields).forEach(key => {
             if (!allowedFields.includes(key)) {
                 delete updateFields[key];
@@ -314,10 +309,20 @@ router.put('/update/users/:id', protect, authorize('admin'), async (req, res) =>
             return res.status(400).json({ message: 'Invalid batch' });
         }
 
+        if (updateFields.role && updateFields.role !== 'student') {
+            updateFields.batch = undefined;
+            updateFields.semester = undefined;
+            updateFields.roll_number = undefined;
+        }
+
+        if (updateFields.role && updateFields.role !== 'faculty') {
+            updateFields.handledBatches = [];
+        }
+
         const user = await User.findByIdAndUpdate(
             req.params.id,
             { $set: updateFields },
-            { new: true }
+            { new: true, runValidators: true }
         ).select('-password');
         
         await logAction({
@@ -327,7 +332,7 @@ router.put('/update/users/:id', protect, authorize('admin'), async (req, res) =>
         });
         res.json(user);
     } catch (error) {
-        res.status(500).json({ message: 'Error updating user' });
+        res.status(500).json({ message: 'Error updating user', error: error.message });
     }
 });
 
@@ -363,7 +368,8 @@ router.post('/logout', protect, async (req, res) => {
             action: 'logout',
             details: 'User logged out and session_token cleared'
         });
-
+        
+        res.clearCookie('token');
         res.json({ message: 'Logged out successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Logout failed' });

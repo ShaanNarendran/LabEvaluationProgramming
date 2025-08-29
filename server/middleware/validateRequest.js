@@ -8,7 +8,7 @@ const validateRequest = (req, res, next) => {
     // If there are validation errors, send them back
     return res.status(400).json({ errors: errors.array() });
   }
-  next(); // No errors? Move to the next middleware/controller
+  next();
 };
 
 module.exports = validateRequest;

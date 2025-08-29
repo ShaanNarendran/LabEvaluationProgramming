@@ -8,236 +8,216 @@
 </head>
 <body class="bg-gradient-to-br from-indigo-50 to-purple-100 min-h-screen font-sans">
 
-  <div class="max-w-5xl mx-auto px-6 py-10">
+  <div class="max-w-7xl mx-auto px-6 py-10">
     <div class="flex justify-between items-center mb-10">
       <div class="text-left">
         <h1 class="text-3xl font-extrabold text-purple-800">Faculty Dashboard</h1>
-        <p class="text-gray-600 mt-2">Create, manage, and assign programming questions.</p>
+        <p class="text-gray-600 mt-2">Create, manage, and assign programming questions and modules.</p>
       </div>
       <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full shadow">Logout</button>
     </div>
 
-    <div class="grid grid-cols-1 gap-6">
-
-      <!-- Add New Question Section -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-purple-400">
-        <h2 class="text-xl font-semibold text-purple-700 mb-4">Add New Question</h2>
-        <form id="questionForm">
-          <input id="title" type="text" placeholder="Question Title" required class="w-full p-3 mb-3 border rounded-lg" />
-          <textarea id="description" placeholder="Problem Description" rows="4" required class="w-full p-3 mb-3 border rounded-lg"></textarea>
-          
-          <div class="mb-3">
-              <label for="marks" class="font-semibold text-gray-700">Marks:</label>
-              <input id="marks" type="number" value="10" min="0" required class="w-full p-3 mt-1 border rounded-lg" />
-          </div>
-
-          <input id="signature" type="text" placeholder="Function Signature (e.g. int sum(int a, int b))" class="w-full p-3 mb-3 border rounded-lg" />
-          <select id="language" required class="w-full p-3 mb-3 border rounded-lg">
-            <option selected disabled>Select Programming Language</option>
-            <option value="c">C</option>
-            <option value="cpp">C++</option>
-            <option value="java">Java</option>
-            <option value="python">Python</option>
-          </select>
-          <textarea id="precode" placeholder="Pre-code (Optional)" rows="3" class="w-full p-3 mb-3 border rounded-lg"></textarea>
-          <div class="mb-4">
-            <h3 class="font-semibold text-purple-700 mb-2">Test Cases</h3>
-            <div id="testcaseContainer">
-              <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Input" class="test-input flex-1 p-2 border rounded" />
-                <input type="text" placeholder="Expected Output" class="expected-output flex-1 p-2 border rounded" />
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      
+      <div class="space-y-8">
+        <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-purple-400">
+          <h2 class="text-xl font-semibold text-purple-700 mb-4">Add New Question</h2>
+          <form id="questionForm">
+              <input id="title" type="text" placeholder="Question Title" required class="w-full p-3 mb-3 border rounded-lg" />
+              <textarea id="description" placeholder="Problem Description" rows="4" required class="w-full p-3 mb-3 border rounded-lg"></textarea>
+              <input id="marks" type="number" placeholder="Marks" value="10" required class="w-full p-3 mb-3 border rounded-lg" />
+              <select id="language" required class="w-full p-3 mb-3 border rounded-lg">
+                  <option selected disabled>Select Programming Language</option>
+                  <option value="c">C</option>
+                  <option value="cpp">C++</option>
+                  <option value="java">Java</option>
+                  <option value="python">Python</option>
+              </select>
+              <div id="testcaseContainer" class="space-y-2 mb-3">
+                  <div class="flex gap-2">
+                      <input type="text" placeholder="Input" class="test-input flex-1 p-2 border rounded" />
+                      <input type="text" placeholder="Expected Output" class="expected-output flex-1 p-2 border rounded" />
+                  </div>
               </div>
+              <button type="button" onclick="addTestCase()" class="text-sm text-blue-600 hover:underline mb-4">+ Add another test case</button>
+              <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-full shadow">Add Question to Bank</button>
+          </form>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-green-400">
+          <h2 class="text-xl font-semibold text-green-700 mb-4">Module Management</h2>
+          <div class="mb-4 space-y-3">
+            <input id="moduleTitle" type="text" placeholder="New Module Title (e.g., Midterm Exam)" class="w-full p-3 border rounded-lg" />
+            <input id="moduleCourseCode" type="text" placeholder="Course Code (e.g., CS101)" class="w-full p-3 border rounded-lg" />
+            <input id="moduleWeekNumber" type="number" placeholder="Week Number" class="w-full p-3 border rounded-lg" />
+            <p class="text-sm text-gray-500">Select questions from the list on the right, then click the button below to create a module.</p>
+            <button id="createModuleBtn" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full shadow">Create New Module</button>
+            <p id="moduleStatus" class="mt-3 text-sm"></p>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-400">
+          <h2 class="text-xl font-semibold text-blue-700 mb-4">Bulk Upload Questions</h2>
+          <input type="file" id="bulkFile" accept=".json,.xlsx,.xls,.csv" class="mb-2">
+          <p class="text-sm text-gray-500 mb-3">Format: Array of objects with title, description, languages, marks, testCases[]</p>
+          <button id="uploadBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full shadow">Upload Question File</button>
+          <p id="uploadStatus" class="mt-3 text-sm text-gray-600"></p>
+        </div>
+
+      </div>
+
+      <div class="space-y-8">
+          <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-yellow-400">
+            <h2 class="text-xl font-semibold text-yellow-700 mb-4">Available Questions</h2>
+            <div id="questionList" class="space-y-2 text-gray-700 text-sm max-h-96 overflow-y-auto">
+                <li class="text-gray-500">Loading questions...</li>
             </div>
-            <button type="button" onclick="addTestCase()" class="text-sm text-blue-600 hover:underline">+ Add another test case</button>
           </div>
-          <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-full shadow">Add Question</button>
-        </form>
-      </div>
+          
+          <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-indigo-400">
+            <h2 class="text-xl font-semibold text-indigo-700 mb-4">Assign to Students</h2>
+            <div class="space-y-4">
+              <div>
+                <label for="batchSelect" class="font-semibold text-gray-700 block mb-1">Select Batch & Semester:</label>
+                <select id="batchSelect" class="w-full p-3 border rounded-lg">
+                    <option>Loading batches...</option>
+                </select>
+              </div>
+              
+              <div>
+                <label for="moduleSelect" class="font-semibold text-gray-700 block mb-1">Assign or Report on a Module:</label>
+                <div class="flex items-center gap-2">
+                    <select id="moduleSelect" class="flex-grow p-3 border rounded-lg">
+                        <option>Loading modules...</option>
+                    </select>
+                    <button id="downloadReportBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg shadow" title="Download Report">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="mt-3">
+                    <label for="randomCount" class="font-semibold text-gray-700 block mb-1">Number of Random Questions</label>
+                    <input type="number" id="randomCount" placeholder="Leave blank to assign all" class="w-full p-3 border rounded-lg">
+                </div>
+                
+                <button id="assignModuleBtn" class="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg shadow">Assign Module</button>
+              </div>
 
-      <!-- Bulk Upload Questions Section -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-yellow-400">
-        <h2 class="text-xl font-semibold text-yellow-700 mb-2">Bulk Upload Questions (JSON/XLSX)</h2>
-        <input type="file" id="bulkFile" accept=".json,.xlsx,.xls,.csv" class="mb-2">
-        <p class="text-sm text-gray-500 mb-2">Format: Array of objects with title, description, languages, marks, testCases[]</p>
-        <button id="uploadBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded-full shadow">Upload Question File</button>
-        <p id="uploadStatus" class="mt-3 text-sm text-gray-600"></p>
-      </div>
-
-      <!-- Assign Questions Section -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-indigo-400 mt-6">
-        <h2 class="text-xl font-semibold text-indigo-700 mb-4">Assign Questions</h2>
-        
-        <div class="space-y-4 p-4 mb-4 bg-indigo-50 rounded-lg">
-          <div class="flex items-center gap-4">
-            <label for="batchSelect" class="font-semibold text-gray-700">Assign to Batch:</label>
-            <select id="batchSelect" class="px-3 py-1.5 border border-gray-300 rounded-lg shadow-sm">
-                <option value="N">Batch N</option>
-                <option value="P">Batch P</option>
-                <option value="Q">Batch Q</option>
-            </select>
+              <p id="assignStatus" class="mt-3 text-sm"></p>
+            </div>
           </div>
-          <div class="flex items-center gap-4">
-            <label for="randomCount" class="font-semibold text-gray-700">Number of Questions (for Random):</label>
-            <input type="number" id="randomCount" value="1" min="1" class="w-20 px-3 py-1.5 border border-gray-300 rounded-lg shadow-sm">
-          </div>
-          <div class="flex items-center gap-4">
-            <button id="manualAssignBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg shadow">Assign Manually (All Selected)</button>
-            <button id="randomAssignBtn" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow">Assign Randomly (Subset)</button>
-          </div>
-        </div>
-        <p id="assignStatus" class="mt-3 text-sm text-gray-600"></p>
-        
-        <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-2">Select from Available Questions:</h3>
-        <div class="flex items-center mb-2">
-            <input type="checkbox" id="selectAllCheckbox" class="h-4 w-4 mr-2">
-            <label for="selectAllCheckbox" class="font-medium">Select All Questions</label>
-        </div>
-        <ul id="questionList" class="space-y-2 text-gray-700 text-sm">
-          <li class="text-gray-500">Loading questions...</li>
-        </ul>
       </div>
-
-      <!-- Admin: Bulk Upload Users Section -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-red-400 mt-6">
-        <h2 class="text-xl font-semibold text-red-700 mb-2">Admin: Bulk Upload Users (JSON)</h2>
-        <input type="file" id="userBulkFile" accept=".json,.xlsx,.xls,.csv,.pdf" class="mb-2">
-        <button id="userUploadBtn" class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full shadow">Upload User File</button>
-        <p id="userUploadStatus" class="mt-3 text-sm text-gray-600"></p>
-      </div>
-
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script>
-    // --- THIS IS THE FIX ---
-    // The baseURL now correctly points to the /api path, making all
-    // subsequent requests (like '/faculty/questions') work correctly.
-    const config = {
-      API_BASE_URL: 'http://localhost:5050/api'
-    };
-    
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.href = '/faculty-login.html';
-    }
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    const axiosInstance = axios.create({ baseURL: '/api' });
 
-    const axiosInstance = axios.create({
-        baseURL: config.API_BASE_URL,
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    // --- Event Listeners ---
     document.addEventListener('DOMContentLoaded', () => {
-        loadQuestions();
+        loadInitialData();
         document.getElementById('logoutBtn').addEventListener('click', handleLogout);
         document.getElementById('questionForm').addEventListener('submit', handleAddQuestion);
+        document.getElementById('createModuleBtn').addEventListener('click', handleCreateModule);
+        document.getElementById('assignModuleBtn').addEventListener('click', handleAssignModule);
         document.getElementById('uploadBtn').addEventListener('click', handleBulkQuestionUpload);
-        document.getElementById('manualAssignBtn').addEventListener('click', () => assignQuestions('manual'));
-        document.getElementById('randomAssignBtn').addEventListener('click', () => assignQuestions('random'));
-        document.getElementById('selectAllCheckbox').addEventListener('change', toggleSelectAll);
-        document.getElementById('userUploadBtn').addEventListener('click', handleBulkUserUpload);
+        document.getElementById('downloadReportBtn').addEventListener('click', handleDownloadReport);
     });
 
-    // --- Handlers & Functions ---
-
-    function toggleSelectAll(event) {
-        const checkboxes = document.querySelectorAll('.question-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = event.target.checked;
-        });
+    async function loadInitialData() {
+        try {
+            const [questionsRes, modulesRes, batchesRes] = await Promise.all([
+                axiosInstance.get('/faculty/questions'),
+                axiosInstance.get('/module'),
+                axiosInstance.get('/faculty/my-batches')
+            ]);
+            renderQuestions(questionsRes.data);
+            renderModules(modulesRes.data);
+            renderBatches(batchesRes.data);
+        } catch (err) {
+            console.error("Error loading initial data", err);
+            alert('Failed to load dashboard data. Please try logging in again.');
+        }
     }
 
-    async function handleLogout() {
-      try {
-        await axiosInstance.post('/auth/logout');
-      } catch (err) {
-        console.error('Logout API call failed, but logging out locally anyway.', err);
-      } finally {
-        localStorage.removeItem('token');
-        window.location.href = '/faculty-login.html';
-      }
-    }
-
-    function addTestCase() {
-      const container = document.getElementById("testcaseContainer");
-      const div = document.createElement("div");
-      div.className = "flex gap-2 mb-2";
-      div.innerHTML = `
-        <input type="text" placeholder="Input" class="test-input flex-1 p-2 border rounded" />
-        <input type="text" placeholder="Expected Output" class="expected-output flex-1 p-2 border rounded" />
-      `;
-      container.appendChild(div);
-    }
-
-    async function loadQuestions() {
-      try {
-        // This now calls http://localhost:5050/api/faculty/questions
-        const res = await axiosInstance.get('/faculty/questions');
+    function renderQuestions(questions) {
         const ul = document.getElementById("questionList");
-        ul.innerHTML = res.data.length === 0
-          ? "<li class='text-gray-500'>No questions added yet.</li>"
-          : res.data.map((q, i) => `
-              <li class="bg-gray-100 p-3 rounded-lg flex justify-between items-center">
-                <div class="flex items-center">
-                    <input type="checkbox" class="h-4 w-4 mr-4 question-checkbox" data-id="${q._id}">
-                    <label class="font-medium">Q${i + 1}: ${q.title} <span class='text-gray-500'>(${q.marks || 0} Marks)</span></label>
-                </div>
-                <div class="space-x-4">
-                  <a href="/faculty-report.html?questionId=${q._id}" class="text-blue-600 hover:underline text-sm font-medium">View Report</a>
-                  <button onclick="deleteQuestion('${q._id}')" class="text-red-600 hover:underline text-sm font-medium">Delete</button>
-                </div>
-              </li>
+        ul.innerHTML = questions.length === 0
+            ? "<li class='text-gray-500'>No questions added yet.</li>"
+            : questions.map(q => `
+                <li class="bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+                    <div class="flex items-center">
+                        <input type="checkbox" class="h-4 w-4 mr-4 question-checkbox" data-id="${q._id}">
+                        <label class="font-medium">${q.title}</label>
+                    </div>
+                    <button onclick="deleteQuestion('${q._id}')" class="text-red-500 hover:underline text-xs">Delete</button>
+                </li>
             `).join('');
-      } catch (err) {
-        console.error("Error loading questions", err);
-        document.getElementById("questionList").innerHTML = "<li class='text-red-500'>Failed to load questions.</li>";
-      }
     }
 
-    async function deleteQuestion(id) {
-      if (!confirm("Are you sure you want to delete this question?")) return;
-      try {
-        await axiosInstance.delete(`/faculty/questions/${id}`);
-        alert("Question deleted successfully!");
-        loadQuestions();
-      } catch (err) {
-        console.error("Error deleting question", err);
-        alert("Failed to delete question.");
-      }
+    function renderModules(modules) {
+        const select = document.getElementById("moduleSelect");
+        select.innerHTML = modules.length === 0 
+            ? '<option>No modules created yet.</option>'
+            : '<option selected disabled>Select a module</option>' + modules.map(m => `<option value="${m._id}">${m.title}</option>`).join('');
     }
 
-    async function handleAddQuestion(e) {
-      e.preventDefault();
-      const title = document.getElementById("title").value.trim();
-      const description = document.getElementById("description").value.trim();
-      const marks = parseInt(document.getElementById("marks").value, 10);
-      const functionSignature = document.getElementById("signature").value.trim();
-      const precode = document.getElementById("precode").value.trim();
-      const language = document.getElementById("language").value;
-      const testCases = Array.from(document.querySelectorAll("#testcaseContainer > div")).map(div => {
-        const input = div.querySelector(".test-input").value;
-        const output = div.querySelector(".expected-output").value;
-        return { input, expected: output };
-      }).filter(tc => tc.input || tc.expected);
-
-      const payload = { title, description, marks, functionSignature, precode, languages: [language], testCases };
-
-      try {
-        await axiosInstance.post('/faculty/questions', payload);
-        alert("Question added successfully!");
-        e.target.reset();
-        document.getElementById("testcaseContainer").innerHTML = `<div class="flex gap-2 mb-2"><input type="text" placeholder="Input" class="test-input flex-1 p-2 border rounded" /><input type="text" placeholder="Expected Output" class="expected-output flex-1 p-2 border rounded" /></div>`;
-        loadQuestions();
-      } catch (err) {
-        const errorMsg = err.response?.data?.errors?.[0]?.msg || err.response?.data?.message || "Failed to save question.";
-        alert(`Error: ${errorMsg}`);
-        console.error("Error saving question", err);
-      }
+    function renderBatches(batches) {
+        const select = document.getElementById("batchSelect");
+        const uniqueBatches = [...new Map(batches.map(item => [`${item.batch}-${item.semester}`, item])).values()];
+        
+        select.innerHTML = uniqueBatches.length === 0
+            ? '<option>No batches assigned to you.</option>'
+            : '<option selected disabled>Select a batch/semester</option>' + uniqueBatches.map(b => `<option value='${JSON.stringify(b)}'>Batch ${b.batch} - Semester ${b.semester}</option>`).join('');
     }
 
+    async function handleAssignModule() {
+        console.log("%c--- [FRONTEND DEBUG] ASSIGNMENT INITIATED ---", "color: blue; font-weight: bold;");
+        const batchSelect = document.getElementById('batchSelect');
+        const moduleSelect = document.getElementById('moduleSelect');
+        const randomCountInput = document.getElementById('randomCount');
+        const statusEl = document.getElementById('assignStatus');
+
+        if (batchSelect.selectedIndex <= 0 || moduleSelect.selectedIndex <= 0) {
+            statusEl.textContent = 'Error: Please select both a batch and a module.';
+            statusEl.style.color = 'red';
+            return;
+        }
+
+        const { batch, semester } = JSON.parse(batchSelect.value);
+        const moduleId = moduleSelect.value;
+        const randomCount = parseInt(randomCountInput.value, 10);
+        
+        const payload = { moduleId, batch, semester };
+        if (!isNaN(randomCount) && randomCount > 0) {
+            payload.randomCount = randomCount;
+        }
+        
+        console.log("[FRONTEND DEBUG] Sending payload to server:", payload);
+
+        try {
+            const res = await axiosInstance.post('/faculty/modules/assign', payload);
+            console.log("[FRONTEND DEBUG] Server responded successfully:", res.data);
+            statusEl.textContent = res.data.message;
+            statusEl.style.color = 'green';
+        } catch (err) {
+            console.error("[FRONTEND DEBUG] Server responded with an error:", err.response?.data);
+            statusEl.textContent = `Error: ${err.response?.data?.message || 'Assignment failed.'}`;
+            statusEl.style.color = 'red';
+        }
+    }
+    
+    // --- Other functions (handleBulkQuestionUpload, handleCreateModule, etc.) ---
+    async function handleDownloadReport() {
+        const moduleSelect = document.getElementById('moduleSelect');
+        if (moduleSelect.selectedIndex <= 0) {
+            alert('Please select a module to generate a report.');
+            return;
+        }
+        const moduleId = moduleSelect.value;
+        window.location.href = `/api/faculty/modules/${moduleId}/report`;
+    }
+    
     async function handleBulkQuestionUpload() {
       const fileInput = document.getElementById("bulkFile");
       const status = document.getElementById("uploadStatus");
@@ -251,7 +231,7 @@
         const res = await axiosInstance.post('/faculty/bulk', formData);
         status.textContent = res.data.message || "Upload complete!";
         fileInput.value = '';
-        loadQuestions();
+        loadInitialData();
       } catch (err) {
         const errorMsg = err.response?.data?.message || "Failed to upload questions.";
         status.textContent = `Error: ${errorMsg}`;
@@ -259,71 +239,97 @@
       }
     }
 
-    async function assignQuestions(strategy) {
-        const statusEl = document.getElementById('assignStatus');
+    async function handleCreateModule() {
+        const title = document.getElementById('moduleTitle').value.trim();
+        const courseCode = document.getElementById('moduleCourseCode').value.trim();
+        const weekNumber = document.getElementById('moduleWeekNumber').value;
         const selectedCheckboxes = document.querySelectorAll('.question-checkbox:checked');
         const questionIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
-        const batch = document.getElementById('batchSelect').value;
-        const countInput = document.getElementById('randomCount');
-        const count = parseInt(countInput.value, 10);
+        const statusEl = document.getElementById('moduleStatus');
 
-        if (questionIds.length === 0) {
-            statusEl.textContent = 'Error: Please select at least one question to assign.';
+        if (!title || !courseCode || !weekNumber) {
+            statusEl.textContent = 'Error: Module Title, Course Code, and Week Number are required.';
             statusEl.style.color = 'red';
             return;
         }
-        
-        const payload = { questionIds, batch, strategy };
-
-        if (strategy === 'random') {
-            if (isNaN(count) || count < 1) {
-                statusEl.textContent = 'Error: Please enter a valid number for random assignment.';
-                statusEl.style.color = 'red';
-                return;
-            }
-             if (count > questionIds.length) {
-                statusEl.textContent = `Error: Count (${count}) cannot be greater than the number of selected questions (${questionIds.length}).`;
-                statusEl.style.color = 'red';
-                return;
-            }
-            payload.count = count;
+        if (questionIds.length === 0) {
+            statusEl.textContent = 'Error: Please select at least one question for the module.';
+            statusEl.style.color = 'red';
+            return;
         }
-
-        statusEl.textContent = `Assigning questions with '${strategy}' strategy...`;
-        statusEl.style.color = 'black';
 
         try {
-            const res = await axiosInstance.post('/faculty/questions/assign', payload);
-            statusEl.textContent = res.data.message;
+            await axiosInstance.post('/module', { 
+                title, 
+                courseCode, 
+                weekNumber: parseInt(weekNumber), 
+                questions: questionIds 
+            });
+            statusEl.textContent = `Module "${title}" created successfully!`;
             statusEl.style.color = 'green';
+            document.getElementById('moduleTitle').value = '';
+            document.getElementById('moduleCourseCode').value = '';
+            document.getElementById('moduleWeekNumber').value = '';
+            loadInitialData();
         } catch (err) {
-            const errorMsg = err.response?.data?.message || 'Failed to assign questions.';
-            statusEl.textContent = `Error: ${errorMsg}`;
+            statusEl.textContent = 'Error creating module.';
             statusEl.style.color = 'red';
-            console.error('Assignment error:', err);
+            console.error(err);
         }
     }
-
-    async function handleBulkUserUpload() {
-      const fileInput = document.getElementById('userBulkFile');
-      const status = document.getElementById('userUploadStatus');
-      const file = fileInput.files[0];
-      if (!file) { status.textContent = 'Please select a user file.'; return; }
-
-      const formData = new FormData();
-      formData.append('file', file);
-      status.textContent = "Uploading users...";
+    
+    async function handleLogout() {
       try {
-        const res = await axiosInstance.post(`/auth/register/bulk`, formData);
-        status.textContent = `Upload complete! Created: ${res.data.created.length}, Errors: ${res.data.errors.length}`;
-        fileInput.value = '';
-      } catch (err) {
-        const errorMsg = err.response?.data?.message || 'Failed to upload users.';
-        status.textContent = `Error: ${errorMsg}`;
-        console.error('User bulk upload error', err);
+        await axiosInstance.post('/auth/logout');
+      } finally {
+        window.location.href = '/faculty-login.html';
       }
     }
-  </script>
+
+    function addTestCase() {
+        const container = document.getElementById("testcaseContainer");
+        const div = document.createElement("div");
+        div.className = "flex gap-2 mb-2";
+        div.innerHTML = `<input type="text" placeholder="Input" class="test-input flex-1 p-2 border rounded" /><input type="text" placeholder="Expected Output" class="expected-output flex-1 p-2 border rounded" />`;
+        container.appendChild(div);
+    }
+    
+    async function handleAddQuestion(e) {
+      e.preventDefault();
+      const testCases = Array.from(document.querySelectorAll("#testcaseContainer > div")).map(div => ({
+        input: div.querySelector(".test-input").value,
+        expected: div.querySelector(".expected-output").value
+      }));
+
+      const payload = {
+          title: document.getElementById('title').value,
+          description: document.getElementById('description').value,
+          marks: parseInt(document.getElementById('marks').value),
+          languages: [document.getElementById('language').value],
+          testCases
+      };
+      
+      try {
+        await axiosInstance.post('/faculty/questions', payload);
+        alert("Question added successfully!");
+        e.target.reset();
+        loadInitialData();
+      } catch (err) {
+        alert("Error: Failed to save question.");
+      }
+    }
+
+    async function deleteQuestion(id) {
+        if (!confirm("Are you sure? This will remove the question from the bank and all modules.")) return;
+        try {
+            await axiosInstance.delete(`/faculty/questions/${id}`);
+            alert("Question deleted.");
+            loadInitialData();
+        } catch (err) {
+            alert("Error deleting question.");
+        }
+    }
+</script>
 
 </body>
 </html>

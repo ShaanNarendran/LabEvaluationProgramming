@@ -6,10 +6,9 @@ const userSchema = new mongoose.Schema({
     user_id: { type: String, required: true, unique: true },
     roll_number: {
         type: String,
-        required: function () {
-            return this.role === 'student';
-        },
+        required: function () { return this.role === 'student'; },
         unique: true,
+        sparse: true // Allows null/missing roll_number for non-students
     },
     password: { type: String, required: true },
     role: {
@@ -17,11 +16,24 @@ const userSchema = new mongoose.Schema({
         enum: ['admin', 'faculty', 'student'],
         default: 'student'
     },
+    // Student-specific fields
     batch: {
         type: String,
         enum: ['N', 'P', 'Q'],
+        required: function() { return this.role === 'student'; }
     },
-    semester: { type: Number, min: 1, max: 8 },
+    semester: { 
+        type: Number, 
+        min: 1, 
+        max: 8,
+        required: function() { return this.role === 'student'; }
+    },
+    // Faculty-specific field
+    handledBatches: [{
+        _id: false, // Don't create a separate _id for subdocuments
+        batch: { type: String, enum: ['N', 'P', 'Q'] },
+        semester: { type: Number, min: 1, max: 8 }
+    }],
     session_token: { type: String, default: null }
 });
 

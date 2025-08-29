@@ -22,11 +22,18 @@ const submissionSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
-  
   marksAwarded: {
     type: Number,
     default: 0
   },
+  testCaseResults: [{
+    testCase: {
+        input: String,
+        expected: String
+    },
+    output: String,
+    passed: Boolean
+  }],
   submittedAt: {
     type: Date,
     default: Date.now,

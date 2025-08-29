@@ -27,13 +27,11 @@ async function executeCode(language, sourceCode, testCases) {
         throw new Error(`Unsupported language: ${language}`);
     }
 
-    // --- UPDATED: Use 'temp' directory ---
     const tempDir = path.resolve(__dirname, '../temp'); 
     if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    // --- Write the main source code file ---
     const fileName = language === 'java' ? 'Main.java' : `code.${language}`;
     const hostFilePath = path.join(tempDir, fileName);
     const containerFilePath = `/usercode/${fileName}`; // This path is INSIDE the container
@@ -45,11 +43,9 @@ async function executeCode(language, sourceCode, testCases) {
     for (const testCase of testCases) {
         console.log(`[ExecRunner] Running test case with input: "${testCase.input}"`);
 
-        // --- Write input to a separate file in the 'temp' directory ---
         const inputFilePath = path.join(tempDir, 'input.txt');
         fs.writeFileSync(inputFilePath, testCase.input || '');
         
-        // The command now mounts the 'temp' directory but renames it to '/usercode' inside the container
         const commandToExecute = `${langConfig.command(containerFilePath)} < /usercode/input.txt`;
         const fullCommand = `docker run --rm -v "${tempDir}:/usercode" --workdir /usercode ${langConfig.image} sh -c "${commandToExecute}"`;
         

@@ -3,21 +3,17 @@ const { Question, Submission } = require('../models');
 // Fetches only the questions assigned to the logged-in student.
 exports.getAllQuestions = async (req, res, next) => {
     try {
-        // --- TEMPORARY DEBUGGING ---
-        console.log(`[Debug] Fetching questions for user ID: ${req.user._id}`);
-        // ---------------------------
-
+        console.log(`\n--- [STUDENT DEBUG] Fetching questions for user: ${req.user.name} (${req.user._id}) ---`);
+        
         const questions = await Question.find({ assignedTo: req.user._id });
 
-        // --- TEMPORARY DEBUGGING ---
-        console.log(`[Debug] Found ${questions.length} questions for this user.`);
-        // ---------------------------
-        
+        console.log(`[STUDENT DEBUG] Found ${questions.length} questions in the database for this user.`);
+        const questionTitles = questions.map(q => q.title);
+        console.log("[STUDENT DEBUG] Question titles found:", questionTitles);
+
         res.json(questions);
     } catch (err) {
-        // --- TEMPORARY DEBUGGING ---
-        console.error("[Debug] Error in getAllQuestions:", err);
-        // ---------------------------
+        console.error("[STUDENT DEBUG] Error in getAllQuestions:", err);
         next(err);
     }
 };
