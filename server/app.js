@@ -6,6 +6,9 @@ const cookieParser = require('cookie-parser');
 const { protectPage, authorize } = require('./middleware/auth');
 require('dotenv').config({ path: __dirname + '/.env' });
 
+// Fix mongoose deprecation warning
+mongoose.set('strictQuery', false);
+
 const app = express();
 
 const noCache = (req, res, next) => {
